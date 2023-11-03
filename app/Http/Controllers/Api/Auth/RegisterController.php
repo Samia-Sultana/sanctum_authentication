@@ -9,22 +9,39 @@ use Illuminate\Http\Request;
 
 class RegisterController extends Controller
 {
+    private User $user;
+
+
     /**
      * Handle the incoming request.
      */
-    public function __construct(){
+    public function __construct( User $user){
+
         $this->middleware("guest");
+
+        $this->model = $user;
+
     }
 
 
 
      public function __invoke(RegisterRequest $request)
     {
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
+       $validated = $request->validated();
+
+    //    $user = User::create($validated);
+        $user =  $this->model->create([
+            ...$validated,
             'password' => bcrypt($request->password),
         ]);
+
+
+        // $user = User::create([
+        //     'name' => $request->name,
+        //     'email' => $request->email,
+        //     'password' => bcrypt($request->password),
+        // ]);
+
         $token = $user->createToken('auth_token')->plainTextToken;
         return response()->json([
             'access_token' => $token,
